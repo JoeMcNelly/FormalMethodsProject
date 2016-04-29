@@ -15,12 +15,7 @@ pred State.init[]{
 	some d : Data | d in this.send
 	no this.rec
 }
-
-
 run init for 1 State, 10 Data
-
-
-
 pred sending[s, s' : State] {
 	one d:Data | (
 		(d in s.send and
@@ -29,24 +24,34 @@ pred sending[s, s' : State] {
 		s'.rec = s.rec)
 	)
 }
-
 pred Progress[s, s' : State]{
 	#s.rec < #s'.rec or s'.end
 }
-
-pred Trace {
+pred Possible {
 	first.init
 	all s: State - last |
 		let s' = s.next |
 			sending[s, s'] and Progress[s,s']
 }
-
 pred State.end[] {
 	no d:Data | d in this.send
-	
 }
 
-run Trace for 5 State, 4 Data
+fact bugfix1{
+	all s:State | no d : Data | d in s.send and d in s.rec
+}
+
+run Possible for 5 State, 4 Data
+
+assert AlwaysSend{
+	first.init
+	all s: State - last |
+		let s' = s.next |
+			sending[s, s'] and Progress[s,s'] 
+	all d : Data | d in first.send and d in last.rec
+}
+
+check AlwaysSend for 6 State, 6 Data
 
 
 
