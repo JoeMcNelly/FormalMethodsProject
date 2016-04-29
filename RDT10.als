@@ -41,7 +41,7 @@ fact bugfix1{
 	all s:State | no d : Data | d in s.send and d in s.rec
 }
 
-run Possible for 5 State, 6 Data
+run Possible for 5 State, 5 Data
 
 assert AlwaysSend{
 	first.init
