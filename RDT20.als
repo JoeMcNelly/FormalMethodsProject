@@ -22,22 +22,22 @@ pred State.init[]{
 }
 //run init for 1 State, 10 Data
 
-pred ErrorDectionInPacket[s: State, d: Data] {
-	(One in s.rec.checkSumValue implies  SendAck[s, One, d]) and
-	(Zero in s.rec.checkSumValue implies SendAck[s, Zero, d])
+pred ErrorDectionInPacket[s, s': State, d: Data] {
+	(One in s.rec.checkSumValue implies  SendAck[s,s', One, d]) and
+	(Zero in s.rec.checkSumValue implies SendAck[s,s', Zero, d])
 }
 
-pred SendAck[s:State, b : Bit, d: Data]{
-//	(One in b implies ) //resend
-//	and (Zero in b implies ) // good to go
+pred SendAck[s, s':State, b : Bit, d: Data]{
+	(One in b implies (s'.rec = s.rec - {d}  and sending[s,s'] ) ) //resend
+	and (Zero in b implies s'send = s.send - {d}) // good to go
 }
 
 pred sending[s, s' : State] {
 	one d:Data | (
 		(d in s.send and
 		s'.send = s.send) and// - {d}) and
-		
-		(s'.rec = s.rec + {d})
+		(s'.rec = s.rec + {d} ) and 
+		ErrorDectionInPacket[s,s',d]
 	)
 }
 pred Progress[s, s' : State]{
@@ -47,7 +47,7 @@ pred Possible {
 	first.init
 	all s: State - last |
 		let s' = s.next |
-			sending[s, s'] and Progress[s,s']
+			sending[s, s'] and Progress[s,s'] and 
 }
 pred State.end[] {
 	no d:Data | d in this.send
