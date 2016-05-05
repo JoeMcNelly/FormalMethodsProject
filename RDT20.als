@@ -7,7 +7,7 @@ one sig Zero extends Bit {} // positive or ack
 
 
 sig Data {
-	checkSumValue: Bit
+	checkSumValue: Bit,
 	acknowledged: Bit
 }
 
@@ -20,7 +20,7 @@ pred State.init[]{
 	some d : Data | d in this.send
 	no this.rec
 }
-run init for 1 State, 10 Data
+//run init for 1 State, 10 Data
 
 pred ErrorDectionInPacket[s: State, d: Data] {
 	(One in s.rec.checkSumValue implies  SendAck[s, One, d]) and
@@ -28,16 +28,16 @@ pred ErrorDectionInPacket[s: State, d: Data] {
 }
 
 pred SendAck[s:State, b : Bit, d: Data]{
-	(One in b implies ) //resend
-	and (Zero in b implies ) // good to go
+//	(One in b implies ) //resend
+//	and (Zero in b implies ) // good to go
 }
 
 pred sending[s, s' : State] {
 	one d:Data | (
 		(d in s.send and
-		s'.send = s.send - {d}) and
-		(s'.rec = s.rec + {d} or
-		s'.rec = s.rec)
+		s'.send = s.send) and// - {d}) and
+		
+		(s'.rec = s.rec + {d})
 	)
 }
 pred Progress[s, s' : State]{
@@ -54,10 +54,10 @@ pred State.end[] {
 }
 
 fact bugfix1{
-	all s:State | no d : Data | d in s.send and d in s.rec
+	//all s:State | no d : Data | d in s.send and d in s.rec
 }
 
-run Possible for 5 State, 5 Data
+run Possible for 6 State, 5 Data
 
 assert AlwaysSend{
 	first.init
