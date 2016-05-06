@@ -1,14 +1,9 @@
 module RDT20
 
 open util/ordering[State]
-abstract sig Bit{}
-one sig One extends Bit {} //corrupted  or not ack
-one sig Zero extends Bit {} // positive or ack
-
-
+sig CheckSum{}
 sig Data {
-	checkSumValue: Bit,
-	acknowledged: Bit
+	chk: disjoint CheckSum
 }
 
 sig State {
@@ -20,19 +15,14 @@ pred State.init[]{
 	some d : Data | d in this.send
 	no this.rec
 }
-//run init for 1 State, 10 Data
 
-pred SendAck[s, s':State, d: Data]{
-	s'.rec = s.rec + {d} and
-//	(One in s.rec.checkSumValue implies (s'.rec = s.rec - {d} and sending[s,s'] ) ) and//resend
-	(Zero in s.rec.checkSumValue implies s'.send = s.send - {d}) // good to go
-}
-
+run init for 1 State, exactly 10 Data, 15 CheckSum
 pred sending[s, s' : State] {
 	one d:Data | (
-		d in s.send and
-		s'.send = s.send and 
-		SendAck[s,s',d]
+		(d in s.send and
+		s'.send = s.send - {d}) and
+		(s'.rec = s.rec + {d} or
+		s'.rec = s.rec)
 	)
 }
 pred Progress[s, s' : State]{
@@ -42,17 +32,17 @@ pred Possible {
 	first.init
 	all s: State - last |
 		let s' = s.next |
-			sending[s, s'] and Progress[s,s'] 
+			sending[s, s'] and Progress[s,s']
 }
 pred State.end[] {
 	no d:Data | d in this.send
 }
 
 fact bugfix1{
-	//all s:State | no d : Data | d in s.send and d in s.rec
+//	all s:State | no d : Data | d in s.send and d in s.rec
 }
 
-run Possible for 6 State, 5 Data
+run Possible for 5 State, 5 Data, 15 CheckSum
 
 assert AlwaysSend{
 	first.init
@@ -63,7 +53,7 @@ assert AlwaysSend{
 			not (d in first.rec and d in last.send)
 }
 
-check AlwaysSend for 2 State, 2 Data
+check AlwaysSend for 2 State, 2 Data, 2 CheckSum
 
 
 
