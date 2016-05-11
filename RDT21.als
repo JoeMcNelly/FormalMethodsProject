@@ -15,7 +15,7 @@ one sig CheckCalc{
 }
 
 sig State {
-	packetStatus : set Data,
+	packetStatus : SequenceNumber,
 	send : set Data,
 	rec : set Data
 }
@@ -30,8 +30,8 @@ run init for 1 State, exactly 10 Data, 15 CheckSum
 pred sending[s, s' : State] {
 	 one d,d':Data | (
 		d in s.send and
-		ErrorCheck[d'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d]) and
-		not ErrorCheck[d]' implies (NAK[s,s',d])
+		ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d]) and
+		not ErrorCheck[d,s,s'] implies (NAK[s,s',d])
 	)
 }
 
@@ -43,8 +43,10 @@ fact {
 	all d : Data | d in CheckCalc.map.CheckSum
 }
 
-pred ErrorCheck[d:Data]{
-	d.chk = calc[d]
+pred ErrorCheck[d:Data, s,s' :State]{
+	d.chk = calc[d] and
+	d.sequenceNumber in s.packetStatus and 
+	not d.sequenceNumber in s'.packetStatus and
 }
 
 pred ACK[s,s':State, d:Data]{
