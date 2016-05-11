@@ -33,7 +33,7 @@ pred sending[s, s' : State] {
 	 one d,d':Data | (
 		d in s.send and
 		ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d]) and
-		not ErrorCheck[d,s,s'] implies (NAK[s,s',d])
+		not ErrorCheck[d',s,s'] implies (NAK[s,s',d])
 	)
 }
 
@@ -52,10 +52,14 @@ pred ErrorCheck[d:Data, s,s' :State]{
 }
 
 pred ACK[s,s':State, d:Data]{
-	s'.send = s.send - {d}
+ 	one d: Ack,d':Data | 
+	(
+		(ErrorCheck[d',s,s'] and d' in Ack ) implies s'.send = s.send - {d}
+	)
+	
 }
 pred NAK[s,s':State, d:Data]{
-	//idk
+	
 }
 
 pred Progress[s, s' : State]{
