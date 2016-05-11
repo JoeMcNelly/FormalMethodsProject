@@ -2,8 +2,8 @@ module RDT21
 open util/ordering[State]
 
 abstract sig SequenceNumber {}
-sig One extends SequenceNumber{}
-sig Zero extends SequenceNumber{}
+one sig One extends SequenceNumber{}
+one sig Zero extends SequenceNumber{}
 sig CheckSum{}
 sig Data {
 	chk: one CheckSum,
@@ -26,7 +26,7 @@ pred State.init[]{
 	all d : this.send | d.chk = calc[d]
 }
 
-run init for 1 State, exactly 10 Data, 15 CheckSum
+run init for 1 State, exactly 10 Data, 15 CheckSum, 
 pred sending[s, s' : State] {
 	 one d,d':Data | (
 		d in s.send and
@@ -46,7 +46,7 @@ fact {
 pred ErrorCheck[d:Data, s,s' :State]{
 	d.chk = calc[d] and
 	d.sequenceNumber in s.packetStatus and 
-	not d.sequenceNumber in s'.packetStatus and
+	not d.sequenceNumber in s'.packetStatus 
 }
 
 pred ACK[s,s':State, d:Data]{
