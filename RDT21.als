@@ -9,6 +9,8 @@ sig Data {
 	chk: one CheckSum,
 	sequenceNumber: one SequenceNumber
 }
+sig Ack extends Data{}
+sig Nak extends Data{}
 
 one sig CheckCalc{
 	map: disjoint Data -> one CheckSum
@@ -26,7 +28,7 @@ pred State.init[]{
 	all d : this.send | d.chk = calc[d]
 }
 
-run init for 1 State, exactly 10 Data, 15 CheckSum, 
+run init for 1 State, exactly 10 Data, 15 CheckSum
 pred sending[s, s' : State] {
 	 one d,d':Data | (
 		d in s.send and
