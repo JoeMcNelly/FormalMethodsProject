@@ -90,7 +90,3 @@ assert AlwaysSend{
 }
 
 check AlwaysSend for 2 State, 2 Data, 2 CheckSum
-
-
-
-
