@@ -23,10 +23,10 @@ sig State {
 }
 
 pred State.init[]{
-	some d : Data - Ack - Nak | d in this.send
+	some d : Data - (Ack + Nak) | d in this.send
 	no this.rec
 	all d : this.send | d.chk = calc[d]
-	
+	//no d : Ack + Nak | d in this.send
 }
 
 run init for 1 State, exactly 10 Data, 15 CheckSum
@@ -36,6 +36,9 @@ pred sending[s, s' : State] {
 		(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d])) and
 		(not (ErrorCheck[d',s,s']) implies (NAK[s,s',d]))
 	)
+}
+fact bugfix1{
+	no d : Data | (d in Ack or d in Nak) and d in State.rec
 }
 
 fun calc[d:Data]: CheckSum{
@@ -91,8 +94,8 @@ assert AlwaysSend{
 	all s: State - last |
 		let s' = s.next |
 			sending[s, s'] 
-	all d : Data | d in first.send and d in last.rec 	and
-			not (d in first.rec and d in last.send)
+	all d : Data | (d in first.send and d in last.rec 	and
+			not (d in first.rec and d in last.send))
 }
 
-check AlwaysSend for 2 State, 2 Data, 2 CheckSum
+check AlwaysSend for 4 State, 5 Data, 5 CheckSum, exactly 1 Nak
