@@ -57,17 +57,17 @@ pred SequenceCheck[d:Data, s,s':State] {
 	not d.sequenceNumber in s'.packetStatus 
 }
 
-pred ACK[s,s':State, d:Data]{
- 	one d':Data | 
+pred ACK[s,s':State, d:Data]{ 
+	one d':Data | 
 	(
-		(ErrorCheck[d',s,s'] and d' in Ack and d in Ack) implies s'.send = s.send - {d}
+		(ErrorCheck[d',s,s'] and d' in Ack ) implies s'.send = s.send - {d}
 	)
 	
 }
 pred NAK[s,s':State, d:Data]{
-	one d: Ack,d':Data | 
+	one d':Data | 
 	(
-		(ErrorCheck[d',s,s'] and d' in Ack ) implies s'.send = s.send - {d}
+		ErrorCheck[d',s,s'] and d' in Nak
 	)
 }
 
