@@ -30,7 +30,8 @@ run init for 1 State, exactly 10 Data, 15 CheckSum
 pred sending[s, s' : State] {
 	 one d,d':Data | (
 		d in s.send and
-		ErrorCheck[d'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d])
+		ErrorCheck[d'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d]) and
+		not ErrorCheck[d]' implies (NAK[s,s',d])
 	)
 }
 
@@ -48,6 +49,9 @@ pred ErrorCheck[d:Data]{
 
 pred ACK[s,s':State, d:Data]{
 	s'.send = s.send - {d}
+}
+pred NAK[s,s':State, d:Data]{
+	//idk
 }
 
 pred Progress[s, s' : State]{
