@@ -23,9 +23,10 @@ sig State {
 }
 
 pred State.init[]{
-	some d : Data | d in this.send
+	some d : Data -Ack -Nak | d in this.send
 	no this.rec
 	all d : this.send | d.chk = calc[d]
+	
 }
 
 run init for 1 State, exactly 10 Data, 15 CheckSum
