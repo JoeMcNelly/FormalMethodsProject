@@ -23,7 +23,7 @@ sig State {
 }
 
 pred State.init[]{
-	some d : Data -Ack -Nak | d in this.send
+	some d : Data - Ack - Nak | d in this.send
 	no this.rec
 	all d : this.send | d.chk = calc[d]
 	
@@ -55,14 +55,17 @@ pred SequenceCheck[d:Data, s,s':State] {
 }
 
 pred ACK[s,s':State, d:Data]{
- 	one d: Ack,d':Data | 
+ 	one d':Data | 
 	(
-		(ErrorCheck[d',s,s'] and d' in Ack ) implies s'.send = s.send - {d}
+		(ErrorCheck[d',s,s'] and d' in Ack and d in Ack) implies s'.send = s.send - {d}
 	)
 	
 }
 pred NAK[s,s':State, d:Data]{
-	
+	one d: Ack,d':Data | 
+	(
+		(ErrorCheck[d',s,s'] and d' in Ack ) implies s'.send = s.send - {d}
+	)
 }
 
 pred Progress[s, s' : State]{
