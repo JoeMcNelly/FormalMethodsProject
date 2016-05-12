@@ -30,12 +30,21 @@ pred State.init[]{
 }
 
 run init for 1 State, exactly 10 Data, 15 CheckSum
-pred sending[s, s' : State] {
-	 one d,d':Data | (
-		d in s.send and
-		(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d])) and
-		(not (ErrorCheck[d',s,s']) implies (NAK[s,s',d]))
-	)
+pred sending[s, s', s'' : State] {
+	(One in s.packetStatus and Zero in s''.packetStatus) implies (
+	 	one d,d':Data | (
+			d in s.send and
+			(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d])) and
+			(not (ErrorCheck[d',s,s']) implies (NAK[s,s',d]))
+		)
+	)	
+	(Zero in s.packetStatus and One in s''.packetStatus) implies (
+	 	one d,d':Data | (
+			d in s.send and
+			(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d])) and
+			(not (ErrorCheck[d',s,s']) implies (NAK[s,s',d]))
+		)
+	)	
 }
 fact bugfix1{
 	no d : Data | (d in Ack or d in Nak) and d in State.rec
@@ -50,7 +59,8 @@ fact {
 }
 
 pred ErrorCheck[d:Data, s,s' :State]{
-	d.chk = calc[d]
+	d.chk = calc[d] and 
+	SequenceCheck[d,s,s']
 }
 pred SequenceCheck[d:Data, s,s':State] {
 	d.sequenceNumber in s.packetStatus and 
@@ -78,7 +88,8 @@ pred Possible {
 	first.init
 	all s: State - last |
 		let s' = s.next |
-			sending[s, s']  
+		let s'' = s.prev |
+			sending[s, s',s'']  
 	last.end
 }
 pred State.end[] {
@@ -93,7 +104,8 @@ assert AlwaysSend{
 	first.init
 	all s: State - last |
 		let s' = s.next |
-			sending[s, s'] 
+		let s'' = s.prev |
+			sending[s, s',s''] 
 	all d : Data | (d in first.send and d in last.rec 	and
 			not (d in first.rec and d in last.send))
 }
