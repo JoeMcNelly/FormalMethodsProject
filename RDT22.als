@@ -1,4 +1,4 @@
-module RDT21
+module RDT22
 open util/ordering[State]
 
 abstract sig SequenceNumber {}
@@ -34,7 +34,7 @@ pred sending[s, s', s'' : State] {
 	(One in s.packetStatus and Zero in s''.packetStatus) implies (
 	 	one d,d':Data| (
 			d in s.send and
-			(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',s'',d'])) and
+			(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',s'',d',d.packetSequence])) and
 			(not (ErrorCheck[d',s,s']) implies (NAK[s,s',d']))
 		)
 	)	
