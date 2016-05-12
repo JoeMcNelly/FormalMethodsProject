@@ -26,7 +26,7 @@ pred State.init[]{
 	some d : Data - (Ack + Nak) | d in this.send
 	no this.rec
 	all d : this.send | d.chk = calc[d]
-	//no d : Ack + Nak | d in this.send
+	no d : this.send | d in this.rec
 }
 
 run init for 1 State, exactly 10 Data, 15 CheckSum
@@ -111,3 +111,39 @@ assert AlwaysSend{
 }
 
 check AlwaysSend for 4 State, 5 Data, 5 CheckSum, exactly 1 Nak
+
+
+assert AlwaysSendOneError{
+	first.init
+	all s: State - last |
+		let s' = s.next |
+		let s'' = s.prev |
+			sendingOE[s, s',s''] 
+	all d : Data | (d in first.send and d in last.rec 	and
+			not (d in first.rec and d in last.send))
+}
+
+check AlwaysSendOneError for 6 State, 5 Data, 5 CheckSum, exactly 1 Nak, exactly 1 Ack
+
+
+pred sendingOE[s, s', s'' : State] {
+	(One in s.packetStatus and Zero in s''.packetStatus) implies (
+	 	one d,d':Data | (
+			d in s.send and
+			(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d])) and
+			(not (ErrorCheck[d',s,s']) implies (NAKOE[s,s',d]))
+		)
+	)	
+	(Zero in s.packetStatus and One in s''.packetStatus) implies (
+	 	one d,d':Data | (
+			d in s.send and
+			(ErrorCheck[d',s,s'] implies ((s'.rec = s.rec + {d'}) and ACK[s,s',d])) and
+			(not (ErrorCheck[d',s,s']) implies (NAKOE[s,s',d]))
+		)
+	)	
+}
+
+pred NAKOE[s,s':State, d:Data]{
+		s'.rec = s.rec - {d} and
+		s'.send = s.send - {d}
+}
